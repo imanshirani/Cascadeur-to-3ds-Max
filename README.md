@@ -5,6 +5,8 @@ A high-performance, real-time synchronization bridge between **Cascadeur** and *
 
 [![Donate ❤️](https://img.shields.io/badge/Donate-PayPal-blue.svg)](https://www.paypal.com/donate/?hosted_button_id=LAMNRY6DDWDC4)
 
+![screenshot](castomax.png)
+
 ## ✨ Key Features
 * **One-Click Mesh Sync**: Automatically exports FBX from Cascadeur and imports it into 3ds Max with proper metadata tagging.
 * **Real-time Animation Streaming**: Streams joint positions and rotations directly to the 3ds Max scene at a high update rate.
