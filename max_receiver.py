@@ -128,11 +128,11 @@ class SettingsDialog(QtWidgets.QDialog):
         
         btn_box = QtWidgets.QHBoxLayout()
         self.btn_github = QtWidgets.QPushButton("GitHub Repo")
-        self.btn_github.clicked.connect(lambda: QDesktopServices.openUrl(QUrl("https://github.com/")))
+        self.btn_github.clicked.connect(lambda: QDesktopServices.openUrl(QUrl("https://github.com/imanshirani/Cascadeur-to-3ds-Max")))
         btn_box.addWidget(self.btn_github)
         self.btn_donate = QtWidgets.QPushButton("Donate")
         self.btn_donate.setStyleSheet("background-color: #0070ba; color: white; font-weight: bold;")
-        self.btn_donate.clicked.connect(lambda: QDesktopServices.openUrl(QUrl("https://paypal.me/")))
+        self.btn_donate.clicked.connect(lambda: QDesktopServices.openUrl(QUrl("https://www.paypal.com/donate/?hosted_button_id=LAMNRY6DDWDC4")))
         btn_box.addWidget(self.btn_donate)
         abt_layout.addLayout(btn_box)
         
