@@ -1,4 +1,4 @@
-# File: max_receiver.py
+
 import sys
 import os
 import socket
