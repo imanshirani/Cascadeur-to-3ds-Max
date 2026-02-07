@@ -7,18 +7,14 @@ import datetime
 import threading
 import csc
 
-
+# --- CONFIG ---
 HOST = '127.0.0.1'
 PORT = 5555
 UPDATE_RATE = 0.02
-
-
 SEND_MESH = True 
-
 LOG_FILE = "C:/Temp3d/cas_log.txt"
 
 def log(msg):
-    
     timestamp = datetime.datetime.now().strftime("%H:%M:%S")
     formatted_msg = f"[{timestamp}] {msg}"
     print(formatted_msg)
@@ -42,7 +38,6 @@ class CasBridgeCore:
             self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.sock.settimeout(0.5)
             self.sock.connect((HOST, PORT))
-            
             return True
         except:
             self.sock = None
@@ -87,15 +82,12 @@ class CasBridgeCore:
             return False
 
     def start_live_link(self):
-        
         if self.running:
-            log("⚠️ Previous session detected. Stopping it first...")
             self.stop_live_link()
 
         log("="*40)
-        log("🚀 SCRIPT STARTED")
+        log("🚀 SCRIPT STARTED (RESTART MODE)")
         log(f"📋 Configuration: SEND_MESH is set to [{SEND_MESH}]")
-
         
         if SEND_MESH:
             log("🤔 Reason: Because SEND_MESH = True, I will export the mesh now.")
@@ -107,9 +99,7 @@ class CasBridgeCore:
                 log("   ⚠️ Export failed, but trying to continue connection...")
         else:
             log("🤔 Reason: Because SEND_MESH = False, I am SKIPPING export.")
-            log("   ⏩ Jumping directly to Live Connection.")
 
-        
         self.running = True
         self.thread = threading.Thread(target=self._live_loop)
         self.thread.daemon = True
@@ -119,12 +109,14 @@ class CasBridgeCore:
 
     def stop_live_link(self):
         self.running = False
-        if self.thread: self.thread.join(timeout=1.0)
+        if self.thread: 
+            try: self.thread.join(timeout=1.0)
+            except: pass
         if self.sock: 
             try: self.sock.close()
             except: pass
             self.sock = None
-        log("🛑 STOPPED by User Request.")
+        log("🛑 STOPPED previous session.")
 
     def _live_loop(self):
         log(" Live Loop Running... (Waiting for scene data)")
@@ -139,9 +131,14 @@ class CasBridgeCore:
                 scene = self.manager.current_scene()
                 if not scene: continue
 
-                current_frame = scene.get_current_frame()
-                
-                
+                # --- FIX: Safe Frame Getter ---
+                try:
+                    current_frame = scene.get_current_frame()
+                except AttributeError:
+                    
+                    current_frame = 0 
+                # ------------------------------
+
                 objects = []
                 if hasattr(scene, "get_selected_objects"):
                     objects = scene.get_selected_objects()
@@ -150,7 +147,6 @@ class CasBridgeCore:
 
                 data_list = []
                 for obj in objects:
-                    
                     if "Joint" in obj.name or "Center" in obj.name or "Point" in obj.name:
                         tf = obj.get_global_transform()
                         p = tf.translation
@@ -163,7 +159,6 @@ class CasBridgeCore:
 
                 if not data_list: continue
 
-                
                 packet = {
                     "command": "LIVE_DATA",
                     "frame": current_frame,
@@ -173,31 +168,35 @@ class CasBridgeCore:
                 msg = json.dumps(packet).encode('utf-8')
                 self.sock.sendall(msg)
                 
-                
                 if packet_count == 0:
-                    log(f"📡 First Data Packet Sent! (Frame: {current_frame}, Objects: {len(data_list)})")
-                    log("   ... (Logging suppressed for future packets to save space) ...")
+                    log(f"📡 First Packet Sent! (Frame: {current_frame}, Objects: {len(data_list)})")
                 packet_count += 1
 
             except Exception as e:
-                log(f"⚠️ Loop Error: {e}")
+                
+                if packet_count % 50 == 0:
+                    log(f"⚠️ Loop Error: {e}")
                 self.sock = None
                 time.sleep(1.0)
 
-# --- Main Toggle ---
+
 def main():
     
     if os.path.exists(LOG_FILE) and os.path.getsize(LOG_FILE) > 1024 * 1024:
-        os.remove(LOG_FILE)
+        try: os.remove(LOG_FILE)
+        except: pass
 
+    
     if hasattr(sys, "cas_bridge_instance") and sys.cas_bridge_instance:
         sys.cas_bridge_instance.running = False
         sys.cas_bridge_instance.stop_live_link()
+        time.sleep(0.2) 
         sys.cas_bridge_instance = None
-    else:
-        bridge = CasBridgeCore()
-        sys.cas_bridge_instance = bridge
-        bridge.start_live_link()
+
+    
+    bridge = CasBridgeCore()
+    sys.cas_bridge_instance = bridge
+    bridge.start_live_link()
 
 if __name__ == "__main__":
     main()
