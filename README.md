@@ -4,6 +4,9 @@ for Autodesk 3ds Max 2025+
 A high-performance, real-time synchronization bridge between **Cascadeur** and **Autodesk 3ds Max**. This tool streamlines the animation workflow by streaming character transforms and syncing meshes instantly, eliminating the need for constant FBX export/import cycles.
 
 [![Donate ❤️](https://img.shields.io/badge/Donate-PayPal-blue.svg)](https://www.paypal.com/donate/?hosted_button_id=LAMNRY6DDWDC4)
+![Python](https://img.shields.io/badge/Python-3.10+-blue.svg)
+![PyQt6](https://img.shields.io/badge/GUI-PyQt6-green.svg)
+![License](https://img.shields.io/badge/License-MIT-purple.svg)
 
 ![screenshot](castomax.png)
 
