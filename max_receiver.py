@@ -4,6 +4,7 @@ import os
 import socket
 import json
 import pymxs
+import qtmax
 from PySide6 import QtWidgets, QtCore, QtGui
 from PySide6.QtGui import QDesktopServices
 from PySide6.QtCore import QUrl
@@ -120,7 +121,7 @@ class SettingsDialog(QtWidgets.QDialog):
         abt_layout.setSpacing(15)
         lbl_title = QtWidgets.QLabel("Cascadeur Live Link")
         lbl_title.setStyleSheet("font-size: 18px; font-weight: bold; color: #4fc3f7;")
-        lbl_ver = QtWidgets.QLabel("Version 0.0.1")
+        lbl_ver = QtWidgets.QLabel("Version 0.0.2")
         lbl_desc = QtWidgets.QLabel("Real-time bridge between Cascadeur & 3ds Max")
         abt_layout.addWidget(lbl_title)
         abt_layout.addWidget(lbl_ver)
@@ -255,7 +256,7 @@ class CasLiveDialog(QtWidgets.QDialog):
             self.lbl_status.setText("SYNCING...")
             
             QtCore.QThread.msleep(100)
-            self.import_full_scene(fbx_path)
+            self.import_full_scene(fbx_path, scale)
             
             self.lbl_status.setText("MODEL SYNCED")
             self.lbl_status.setStyleSheet("background-color: #000; color: #00aaff; font-size: 26px; font-weight: bold; border: 2px solid #00aaff; border-radius: 8px; padding: 15px;")
@@ -283,7 +284,7 @@ class CasLiveDialog(QtWidgets.QDialog):
             rt.delete(to_delete)
             print(f"Deleted {len(to_delete)} old bridge objects.")
 
-    def import_full_scene(self, path):
+    def import_full_scene(self, path, scale):
         if not os.path.exists(path): return
         rt = pymxs.runtime
         
@@ -308,6 +309,7 @@ class CasLiveDialog(QtWidgets.QDialog):
                 
                 for obj in rt.selection:
                     rt.setUserProp(obj, "cas_bridge_tag", True)
+                    obj.scale *= rt.Point3(scale, scale, scale)
                     if ":" in obj.name:
                         try: obj.name = obj.name.split(":")[-1]
                         except: pass
@@ -351,7 +353,8 @@ def show_caslive():
         try: sys.caslive_win.close()
         except: pass
         
-    main_window = QtWidgets.QWidget.find(pymxs.runtime.windows.getMAXHWND())
+    
+    main_window = qtmax.GetQMaxMainWindow()
     sys.caslive_win = CasLiveDialog(main_window)
     sys.caslive_win.show()
 
