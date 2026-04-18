@@ -290,29 +290,36 @@ class CasLiveDialog(QtWidgets.QDialog):
         
         try:
             rt.FBXImporterSetParam("Mode", rt.name("create"))
-            rt.FBXImporterSetParam("Geometries", True)
-            rt.FBXImporterSetParam("Skin Modifier", True)
-            rt.FBXImporterSetParam("Animation", False)
-            rt.FBXImporterSetParam("Cameras", False)
-            rt.FBXImporterSetParam("Lights", False)
-            rt.FBXImporterSetParam("ScaleConversion", True)
+            rt.FBXImporterSetParam("ScaleConversion", False)
         except: pass
 
         with pymxs.redraw(False):
-            with pymxs.undo(True):
-                
-                self.delete_previous_sync()
+            self.delete_previous_sync()
+            
+            existing_objects = set(rt.objects)
+            rt.importFile(path, rt.name("noPrompt"))
+            imported_objects = [obj for obj in rt.objects if obj not in existing_objects]
+            
+            if not imported_objects: return
 
+            
+            scale_root = rt.Dummy(name="CAS_SCALE_ROOT")
+            rt.setUserProp(scale_root, "cas_bridge_tag", True)
+            
+            
+            for obj in imported_objects:
+                rt.setUserProp(obj, "cas_bridge_tag", True)
                 
-                rt.importFile(path, rt.name("noPrompt"))
+                if ":" in obj.name:
+                    try: obj.name = obj.name.split(":")[-1]
+                    except: pass
                 
-                
-                for obj in rt.selection:
-                    rt.setUserProp(obj, "cas_bridge_tag", True)
-                    obj.scale *= rt.Point3(scale, scale, scale)
-                    if ":" in obj.name:
-                        try: obj.name = obj.name.split(":")[-1]
-                        except: pass
+                if obj.parent == None:
+                    obj.parent = scale_root
+            
+            
+            scale_root.scale = rt.Point3(scale, scale, scale)
+                    
         rt.redrawViews()
 
     def update_scene_live(self, bones_data, scale, frame_number):
